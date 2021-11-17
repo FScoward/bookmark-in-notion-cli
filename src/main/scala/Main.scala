@@ -12,7 +12,7 @@ val parser1 = {
   )
 }
 @main def hello(args: String*): Unit =
-  val env = sys.env.getOrElse("NOTION_TOKEN", "dummy")
+  val env = sys.env.getOrElse("NOTION_API_KEY", "dummy")
   println(env)
   println(args)
 
