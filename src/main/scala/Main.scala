@@ -1,3 +1,4 @@
+import models.notion._
 import scopt.OParser
 
 val builder = OParser.builder[Config]
@@ -47,14 +48,6 @@ def post(apiKey: String, databaseId: String) = {
 
   import io.circe._, io.circe.generic.semiauto._
 
-  implicit val textDecoder: Decoder[Text] =
-    deriveDecoder[Text]
-  implicit val titleDecoder: Decoder[Title] =
-    deriveDecoder[Title]
-  implicit val pDecoder: Decoder[Parent] =
-    deriveDecoder[Parent]
-  implicit val propertyDecoder: Decoder[Property] =
-    deriveDecoder[Property]
   implicit val rDecoder: Decoder[ResponseResult] =
     deriveDecoder[ResponseResult]
   implicit val qDecoder: Decoder[QueryDatabaseResponse] =
@@ -94,29 +87,4 @@ case class ResponseResult(
     url: String,
     properties: Map[String, Property],
     hasMore: Option[Boolean]
-)
-
-case class Parent(
-    id: String,
-    created_time: String,
-    last_editedTime: String
-)
-
-case class Property(
-    id: String,
-    `type`: String,
-    title: Option[Seq[Title]]
-)
-
-case class Title(
-    `type`: String,
-    text: Text,
-    annotation: Option[Map[String, Option[String]]],
-    plain_text: String,
-    href: Option[String]
-)
-
-case class Text(
-    content: String,
-    link: Option[String]
 )
