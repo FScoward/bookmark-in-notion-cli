@@ -1,6 +1,5 @@
 package models.notion
 
-import scopt.OParser
 import io.circe._, io.circe.generic.semiauto._
 
 implicit val titleDecoder: Decoder[Title] =
