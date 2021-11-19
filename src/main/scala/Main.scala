@@ -39,12 +39,26 @@ def post(apiKey: String, databaseId: String) = {
   import sttp.model._
 
   val query = """|{
-                 |  "property": "name",
-                 |  "text": {
-                 |    is_not_empty: "false"
-                 |  }
                  |}
                  |""".stripMargin
+
+  import sttp.client3._
+  import sttp.client3.circe._
+
+  import io.circe._, io.circe.generic.semiauto._
+
+  implicit val textDecoder: Decoder[Text] =
+    deriveDecoder[Text]
+  implicit val titleDecoder: Decoder[Title] =
+    deriveDecoder[Title]
+  implicit val pDecoder: Decoder[Parent] =
+    deriveDecoder[Parent]
+  implicit val propertyDecoder: Decoder[Property] =
+    deriveDecoder[Property]
+  implicit val rDecoder: Decoder[ResponseResult] =
+    deriveDecoder[ResponseResult]
+  implicit val qDecoder: Decoder[QueryDatabaseResponse] =
+    deriveDecoder[QueryDatabaseResponse]
 
   val request = basicRequest
     .headers(
@@ -54,9 +68,55 @@ def post(apiKey: String, databaseId: String) = {
     )
     .body(query)
     .post(uri"https://api.notion.com/v1/databases/${databaseId}/query")
+    .response(asJson[QueryDatabaseResponse])
   println(request.toCurl)
   val backend = HttpURLConnectionBackend()
   val response = request.send(backend)
-  println(response)
-
+  // println(response)
+  response.body
+    .map(_.results.flatMap(_.properties).map(_._2.title))
+    .map(_.flatMap(_.map(_.map(_.text.content))))
+    .foreach(println)
 }
+
+case class QueryDatabaseResponse(
+    `object`: String,
+    results: Seq[ResponseResult]
+)
+
+case class ResponseResult(
+    `object`: String,
+    id: String,
+    created_time: String,
+    last_edited_time: String,
+    parent: Map[String, String],
+    archived: Boolean,
+    url: String,
+    properties: Map[String, Property],
+    hasMore: Option[Boolean]
+)
+
+case class Parent(
+    id: String,
+    created_time: String,
+    last_editedTime: String
+)
+
+case class Property(
+    id: String,
+    `type`: String,
+    title: Option[Seq[Title]]
+)
+
+case class Title(
+    `type`: String,
+    text: Text,
+    annotation: Option[Map[String, Option[String]]],
+    plain_text: String,
+    href: Option[String]
+)
+
+case class Text(
+    content: String,
+    link: Option[String]
+)
