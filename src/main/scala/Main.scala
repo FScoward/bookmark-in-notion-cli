@@ -7,9 +7,6 @@ val parser1 = {
   OParser.sequence(
     programName("scopt"),
     head("scopt", "4.x"),
-    opt[Int]('f', "foo")
-      .action((x, c) => c.copy(foo = x))
-      .text("foo is an integer property"),
     opt[String]('d', "databaseId")
       .action((x, c) => c.copy(databaseId = x))
       .text("databaseId is String property")
@@ -29,8 +26,6 @@ val parser1 = {
   }
 
 case class Config(
-    foo: Int = -1,
-    xyz: Boolean = false,
     kwargs: Map[String, String] = Map(),
     databaseId: String = ""
 )
