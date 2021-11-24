@@ -2,6 +2,12 @@ import models.notion._
 import scopt.OParser
 
 val builder = OParser.builder[Config]
+case class Config(
+    kwargs: Map[String, String] = Map(),
+    databaseId: String = "",
+    title: String = ""
+)
+
 val parser1 = {
   import builder._
   OParser.sequence(
@@ -9,7 +15,10 @@ val parser1 = {
     head("scopt", "4.x"),
     opt[String]('d', "databaseId")
       .action((x, c) => c.copy(databaseId = x))
-      .text("databaseId is String property")
+      .text("databaseId is String property"),
+    opt[String]('t', "title")
+      .action((x, c) => c.copy(title = x))
+      .text("title is String property")
   )
 }
 @main def hello(args: String*): Unit =
@@ -19,29 +28,24 @@ val parser1 = {
   OParser.parse(parser1, args, Config()) match {
     case Some(config) =>
       println(config.databaseId)
-      post(apiKey = env, databaseId = config.databaseId)
+      post(apiKey = env, databaseId = config.databaseId, title = config.title)
     // do something
     case _ =>
     // arguments are bad, error message will have been displayed
   }
 
-case class Config(
-    kwargs: Map[String, String] = Map(),
-    databaseId: String = ""
-)
-
-def post(apiKey: String, databaseId: String) = {
+def post(apiKey: String, databaseId: String, title: String) = {
   import sttp.client3._
   import sttp.model._
 
-  val query = """|
+  val query = s"""|
                  |{
                  |	"filter": {
                  |		"or": [
                  |			{
                  |				"property": "title",
                  |				"text": {
-                 |					"contains": "OWAS"
+                 |					"contains": "${title}"
                  |				}
                  |			}
                  |		]
