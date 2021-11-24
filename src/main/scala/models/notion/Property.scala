@@ -8,5 +8,6 @@ implicit val propertyDecoder: Decoder[Property] =
 case class Property(
     id: String,
     `type`: String,
-    title: Option[Seq[Title]]
+    title: Option[Seq[Title]],
+    url: Option[String]
 )

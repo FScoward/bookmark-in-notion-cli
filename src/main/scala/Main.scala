@@ -39,7 +39,18 @@ def post(apiKey: String, databaseId: String) = {
   import sttp.client3._
   import sttp.model._
 
-  val query = """|{
+  val query = """|
+                 |{
+                 |	"filter": {
+                 |		"or": [
+                 |			{
+                 |				"property": "title",
+                 |				"text": {
+                 |					"contains": "OWAS"
+                 |				}
+                 |			}
+                 |		]
+                 |	}
                  |}
                  |""".stripMargin
 
@@ -65,11 +76,15 @@ def post(apiKey: String, databaseId: String) = {
   println(request.toCurl)
   val backend = HttpURLConnectionBackend()
   val response = request.send(backend)
-  // println(response)
-  response.body
-    .map(_.results.flatMap(_.properties).map(_._2.title))
-    .map(_.flatMap(_.map(_.map(_.text.content))))
-    .foreach(println)
+  val responseBody = response.body
+
+  val results = responseBody match {
+    case Right(r) => r.results
+    case Left(e)  => throw new Exception(e)
+  }
+
+  println(results.map(_.title))
+  println(results.map(_.urlProperty))
 }
 
 case class QueryDatabaseResponse(
@@ -87,4 +102,17 @@ case class ResponseResult(
     url: String,
     properties: Map[String, Property],
     hasMore: Option[Boolean]
-)
+) {
+  val title =
+    properties
+      .get("名前")
+      .map(_.title)
+      .getOrElse(None)
+      .getOrElse(Nil)
+      .map(_.text.content)
+      .headOption
+      .getOrElse("")
+
+  val urlProperty =
+    properties.get("URL").map(_.url).getOrElse(None).getOrElse("")
+}
